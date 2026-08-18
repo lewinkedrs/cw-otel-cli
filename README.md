@@ -30,6 +30,7 @@ $ cwpromql range 'sum by ("@resource.k8s.namespace.name")({"up"})' --since 1h
 - [Command reference](#command-reference)
 - [Output formats](#output-formats)
 - [Watch mode](#watch-mode)
+- [Use with AI agents (SKILL.md)](#use-with-ai-agents-skillmd)
 - [PromQL syntax notes](#promql-syntax-notes)
 - [Troubleshooting](#troubleshooting)
 - [Project layout](#project-layout)
@@ -261,6 +262,38 @@ the screen and re-renders on the interval until you press Ctrl+C.
 ```bash
 cwpromql range 'sum({"up"})' --since 30m --watch 10s
 ```
+
+---
+
+## Use with AI agents (SKILL.md)
+
+This repo ships a [`SKILL.md`](./SKILL.md) — a concise, agent-oriented guide that
+teaches an AI coding assistant **when and how to use `cwpromql`**. It captures the
+hard rules (OTLP metrics don't appear in `aws cloudwatch list-metrics`; never
+hand-roll SigV4; every selector needs an exact metric-name matcher), the command
+reference, the CloudWatch PromQL dialect (`@resource.` prefixes, delta counters),
+worked examples, and common gotchas.
+
+**Why:** without it, an agent asked to "check the GPU metrics" will often run
+`aws cloudwatch get-metric-data`, find nothing, and wrongly conclude the metrics
+are missing. `SKILL.md` redirects it to `cwpromql` and the right query syntax.
+
+**How to use it in your agent of choice** — point the assistant at the file so it
+loads as context/rules:
+
+- **Kiro:** copy or symlink it into your steering dir, e.g.
+  `cp SKILL.md ~/.kiro/steering/cwpromql.md`, or reference it from an existing
+  steering file.
+- **Claude Code:** append its contents to `CLAUDE.md` (or `@import` the file) in
+  your project or `~/.claude/`.
+- **Codex:** add it to your `AGENTS.md` (Codex auto-loads `AGENTS.md`), or paste
+  the contents into the custom instructions.
+- **Any other agent:** paste the contents into the system prompt / custom
+  instructions, or just keep `SKILL.md` in the repo the agent has open — most
+  file-aware agents will pick it up on their own.
+
+The file is plain Markdown with no tool-specific syntax, so it drops into any of
+these without changes. Keep it updated alongside the CLI as commands evolve.
 
 ---
 
