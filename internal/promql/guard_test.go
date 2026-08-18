@@ -14,7 +14,7 @@ func TestHasMetricName(t *testing.T) {
 		{`{"http.server.active_requests","@resource.service.name"="myservice"}`, true},
 		{`1+1`, true}, // scalar, no braces -> let server decide
 		{``, false},
-		{`{__name__=~".+"}`, false},                  // regex on name only
+		{`{__name__=~".+"}`, false}, // regex on name only
 		{`{"@resource.service.name"="cart"}`, false}, // label-only selector, no metric name
 	}
 	for _, c := range cases {

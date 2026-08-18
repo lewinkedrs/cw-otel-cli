@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -12,6 +13,21 @@ import (
 	"github.com/lewinkedrs/cw-otel-cli/internal/awscfg"
 	"github.com/lewinkedrs/cw-otel-cli/internal/promql"
 )
+
+// version is the build version. It defaults to "dev" and can be overridden at
+// build time with -ldflags "-X .../internal/cli.version=v1.2.3". When unset,
+// it falls back to the module version embedded by `go install`.
+var version = "dev"
+
+func versionString() string {
+	if version != "dev" {
+		return version
+	}
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		return bi.Main.Version
+	}
+	return version
+}
 
 // Persistent (global) flags.
 var (
@@ -34,6 +50,7 @@ It renders instant queries as tables and range queries as ASCII charts,
 and can emit JSON/CSV for scripting.`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
+	Version:       versionString(),
 }
 
 // Execute runs the root command.
