@@ -15,12 +15,7 @@ have to hand-sign an HTTP request with AWS SigV4 (service `monitoring`) against
 can list metrics, run PromQL, and view **charts and tables right in the terminal**
 — or emit JSON/CSV to pipe into `jq` and friends.
 
-```
-$ cwpromql range 'sum by ("@resource.k8s.namespace.name")({"up"})' --since 1h
-  6.00 ┤                                        ╭──────────────  kube-system
-  2.00 ┤━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  otel-demo
-  ...
-```
+![cwpromql demo](assets/demo.gif)
 
 ---
 
