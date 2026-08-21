@@ -23,7 +23,8 @@ mention.
    Only fall back to a raw signed request if `cwpromql` is unavailable.
 3. **Ensure AWS creds are available** (default credential chain or `--profile`).
    The identity needs `cloudwatch:GetMetricData` + `cloudwatch:ListMetrics`.
-   Region defaults to **us-east-2**; pass `--region` for anything else.
+   Region is resolved from the AWS environment/profile (`AWS_REGION` etc.);
+   pass `--region` to override.
 4. **Every selector needs an exact metric-name matcher.** Regex-on-name
    (`{__name__=~".+"}`) or label-only selectors are rejected by CloudWatch with
    HTTP 400; `cwpromql` guards against this client-side.
@@ -47,8 +48,8 @@ go install .                           # -> $(go env GOPATH)/bin/cwpromql
 | `cwpromql label-values <label>` | Values for one label |
 | `cwpromql series '<selector>' [--since 1h]` | Series label sets matching a selector |
 
-Global flags: `-o table|chart|json|csv`, `--limit N`, `--region <r>` (default
-`us-east-2`), `--profile <name>`, `--no-color`. Default output is a **table** for
+Global flags: `-o table|chart|json|csv`, `--limit N`, `--region <r>` (default:
+from the AWS env/profile), `--profile <name>`, `--no-color`. Default output is a **table** for
 `query` and a **chart** for `range`; use `-o json` for scripting/parsing.
 `range` extras: `--since`, `--step` (auto if unset), `--watch <interval>`
 (live top-style refresh), `--height`, `--width`.

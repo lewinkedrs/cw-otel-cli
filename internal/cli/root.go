@@ -63,7 +63,7 @@ func Execute() {
 
 func init() {
 	pf := rootCmd.PersistentFlags()
-	pf.StringVar(&flagRegion, "region", "us-east-2", "AWS region hosting the metrics")
+	pf.StringVar(&flagRegion, "region", "", "AWS region (default: resolved from the AWS environment/profile, e.g. AWS_REGION)")
 	pf.StringVar(&flagProfile, "profile", "", "AWS shared-config profile (default credential chain if empty)")
 	pf.StringVarP(&flagOutput, "output", "o", "", "output format: table|chart|json|csv (default depends on command)")
 	pf.IntVar(&flagLimit, "limit", 0, "max series to return (0 = API default)")
@@ -72,13 +72,22 @@ func init() {
 	rootCmd.AddCommand(queryCmd, rangeCmd, metricsCmd, labelsCmd, labelValuesCmd, seriesCmd)
 }
 
-// newClient builds a signed PromQL client from the global flags.
+// newClient builds a signed PromQL client from the global flags. The region is
+// taken from --region when set, otherwise from the AWS environment/profile
+// chain; if neither yields a region, it returns an actionable error.
 func newClient(ctx context.Context) (*promql.Client, error) {
 	cfg, err := awscfg.Load(ctx, flagRegion, flagProfile)
 	if err != nil {
 		return nil, err
 	}
-	return promql.NewClient(flagRegion, cfg.Credentials), nil
+	region := flagRegion
+	if region == "" {
+		region = cfg.Region
+	}
+	if region == "" {
+		return nil, fmt.Errorf("no AWS region configured: pass --region, or set AWS_REGION / a profile region")
+	}
+	return promql.NewClient(region, cfg.Credentials), nil
 }
 
 // ctxWithTimeout returns a background context with the default timeout.

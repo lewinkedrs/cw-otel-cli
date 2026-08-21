@@ -10,10 +10,13 @@ import (
 
 // Load resolves AWS configuration using the default credential chain
 // (environment, shared credentials file, SSO, credential_process, etc.),
-// honoring an optional named profile and pinning the region.
+// honoring an optional named profile. When region is empty, the region is
+// resolved from the environment/profile chain (AWS_REGION, AWS_DEFAULT_REGION,
+// or the profile's configured region) rather than being pinned.
 func Load(ctx context.Context, region, profile string) (aws.Config, error) {
-	opts := []func(*config.LoadOptions) error{
-		config.WithRegion(region),
+	var opts []func(*config.LoadOptions) error
+	if region != "" {
+		opts = append(opts, config.WithRegion(region))
 	}
 	if profile != "" {
 		opts = append(opts, config.WithSharedConfigProfile(profile))
