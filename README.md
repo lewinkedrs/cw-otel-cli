@@ -92,10 +92,12 @@ ln -sf "$(go env GOPATH)/bin/cwpromql" ~/.local/bin/cwpromql
 ## Authentication & IAM
 
 `cwpromql` uses your ambient AWS credentials — nothing to configure if the AWS
-CLI already works. Select a profile or region with global flags:
+CLI already works. The region is resolved from your environment/profile
+(`AWS_REGION`, `AWS_DEFAULT_REGION`, or the profile's configured region); use
+the global flags to override the profile or region:
 
 ```bash
-cwpromql --region us-east-2 --profile my-profile metrics
+cwpromql --region us-west-2 --profile my-profile metrics
 ```
 
 The calling identity needs these IAM actions (the ones behind the PromQL API):
@@ -136,7 +138,7 @@ Global flags (apply to every command):
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--region` | `us-east-2` | AWS region hosting the metrics |
+| `--region` | (from AWS env/profile) | AWS region; overrides `AWS_REGION` / profile |
 | `--profile` | (chain) | AWS shared-config profile |
 | `-o, --output` | per-command | `table` \| `chart` \| `json` \| `csv` |
 | `--limit` | `0` (API max) | max series to return |
