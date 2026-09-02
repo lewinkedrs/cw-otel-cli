@@ -1,0 +1,63 @@
+# Example: post-deployment SLO gate using cw-otel-cli.
+#
+# After a deploy, this workflow queries a CloudWatch OTel metric via the
+# Prometheus-compatible PromQL API (SigV4-signed, no aws-cli equivalent) and
+# FAILS the job if the metric breaches a threshold — blocking a bad release.
+#
+# This is an ILLUSTRATIVE example. Before it will run in your account, replace:
+#   - AWS_REGION                    with your region
+#   - the role-to-assume ARN        with your OIDC deploy/verify role
+#   - SLO_QUERY / THRESHOLD          with your service's real SLO
+#   - CWPROMQL_VERSION               to pin the release you want
+#
+# To use it in your repo, copy this file to .github/workflows/ and adapt it.
+name: SLO Gate (example)
+
+on:
+  workflow_dispatch:
+  # In a real pipeline you'd trigger the verify job after a successful deploy,
+  # e.g. on: push to main, or as a downstream job in your deploy workflow.
+
+permissions:
+  id-token: write   # required for GitHub OIDC -> AWS
+  contents: read
+
+env:
+  CWPROMQL_VERSION: "0.1.0"
+  AWS_REGION: "us-east-1"
+
+jobs:
+  verify-slo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials (OIDC, no stored secrets)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Replace with your role. It needs only:
+          #   cloudwatch:GetMetricData, cloudwatch:ListMetrics
+          role-to-assume: arn:aws:iam::123456789012:role/cw-otel-cli-slo-gate
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install cw-otel-cli
+        run: |
+          set -euo pipefail
+          url="https://github.com/lewinkedrs/cw-otel-cli/releases/download/v${CWPROMQL_VERSION}/cwpromql_${CWPROMQL_VERSION}_Linux_x86_64.tar.gz"
+          curl -sSfL "$url" | tar -xz cwpromql
+          sudo install -m 0755 cwpromql /usr/local/bin/cwpromql
+          cwpromql --version
+
+      # Give metrics a moment to settle after the deploy before gating on them.
+      - name: Wait for metrics to settle
+        run: sleep 60
+
+      - name: Check SLO
+        env:
+          # Error ratio over the last 5 minutes. Adapt the metric name/labels
+          # to your service. Must return a single scalar series.
+          SLO_QUERY: >-
+            sum(rate({__name__="http_requests_total", outcome="error"}[5m]))
+            /
+            sum(rate({__name__="http_requests_total"}[5m]))
+          THRESHOLD: "0.02"   # fail if error ratio > 2%
+          COMPARISON: "gt"
+        run: ./examples/github-actions-slo-gate/check-slo.sh
