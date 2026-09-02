@@ -60,7 +60,39 @@ SigV4** (service name `monitoring`). `cwpromql`:
 
 ## Install
 
-Requires **Go 1.24+**.
+### Download a prebuilt binary (recommended)
+
+No Go toolchain required. Grab the archive for your platform from the
+[latest release](https://github.com/lewinkedrs/cw-otel-cli/releases/latest),
+extract `cwpromql`, and put it on your `PATH`.
+
+Prebuilt binaries are published for macOS and Linux (both `x86_64` and `arm64`).
+
+```bash
+# Pick your platform: Darwin_arm64, Darwin_x86_64, Linux_arm64, Linux_x86_64
+VERSION=0.1.0
+PLATFORM=Darwin_arm64
+
+curl -sSfL \
+  "https://github.com/lewinkedrs/cw-otel-cli/releases/download/v${VERSION}/cwpromql_${VERSION}_${PLATFORM}.tar.gz" \
+  | tar -xz cwpromql
+
+# Move onto your PATH (e.g. ~/.local/bin or /usr/local/bin):
+install -m 0755 cwpromql ~/.local/bin/cwpromql
+
+cwpromql --version
+```
+
+Each release also ships a `checksums.txt`; verify with
+`sha256sum -c checksums.txt` (macOS: `shasum -a 256 -c checksums.txt`).
+
+> macOS Gatekeeper may quarantine an unsigned download. If you see
+> "cannot be opened because the developer cannot be verified", clear the
+> quarantine flag: `xattr -d com.apple.quarantine ~/.local/bin/cwpromql`.
+
+### Build from source
+
+Requires **Go 1.26+**.
 
 ```bash
 git clone https://github.com/lewinkedrs/cw-otel-cli.git
@@ -75,6 +107,12 @@ go build -o bin/cwpromql .
 
 # …or install onto your PATH:
 go install .        # -> $(go env GOPATH)/bin/cwpromql
+```
+
+Or install a tagged version directly with the Go toolchain:
+
+```bash
+go install github.com/lewinkedrs/cw-otel-cli@v0.1.0
 ```
 
 If `$(go env GOPATH)/bin` isn't on your `PATH`, symlink the binary into a dir
