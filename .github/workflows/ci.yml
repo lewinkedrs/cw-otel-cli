@@ -23,7 +23,7 @@ jobs:
       - name: gofmt check
         run: |
           out=$(gofmt -l .)
-          if [ -n "$out" ]; then
+          if [ -n "$out"errortesting
             echo "The following files are not gofmt-clean:"
             echo "$out"
             exit 1
